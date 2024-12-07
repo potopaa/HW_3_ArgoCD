@@ -1,9 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    app: hello-gitops
   name: hello-gitops
+  namespace: new-hello-gitops
 spec:
   replicas: 5
   selector:
@@ -15,8 +14,8 @@ spec:
         app: hello-gitops
     spec:
       containers:
-        - image: hello-gitops
-          name: hello-gitops
+        - name: hello-gitops
+          image: new-hello-gitops:latest
           ports:
             - name: http
               containerPort: 8050
