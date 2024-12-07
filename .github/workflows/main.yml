@@ -93,7 +93,7 @@ jobs:
 
       - name: Set up EKS context
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name YOUR_EKS_CLUSTER_NAME
+          aws eks update-kubeconfig --region us-east-1 --name hello-gitops-new
 
       - name: Verify Kubernetes connection
         run: |
