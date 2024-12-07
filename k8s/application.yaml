@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     path: manifests
-    repoURL: https://github.com/USERNAME/HW_3_ArgoCD.git
+    repoURL: https://github.com/potopaa/HW_3_ArgoCD.git
     targetRevision: HEAD
   syncPolicy:
     automated:
