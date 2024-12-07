@@ -65,7 +65,7 @@ jobs:
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add app/k8s/kustomization.yaml
+          git add /k8s/kustomization.yaml
           git commit -m "Update deployment to use new image ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops:latest"
           git push
 
@@ -100,7 +100,7 @@ jobs:
 
       - name: Deploy to AWS using kustomize
         run: |
-          cd app/k8s
+          cd /k8s
           kustomize build . | kubectl apply -n new-hello-gitops -f -
 
       - name: Install ArgoCD CLI
