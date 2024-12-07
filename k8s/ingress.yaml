@@ -5,7 +5,7 @@ metadata:
   namespace: new-hello-gitops
 spec:
   rules:
-    - host: '*'
+    - host: ''
       http:
         paths:
           - path: /
