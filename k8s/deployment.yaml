@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: hello-gitops
-          image: new-hello-gitops:latest
+          image: potopaa/new-hello-gitops:latest
           ports:
             - name: http
               containerPort: 8050
