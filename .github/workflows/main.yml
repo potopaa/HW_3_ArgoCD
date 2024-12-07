@@ -128,6 +128,7 @@ jobs:
         run: |
           argocd login ${{ secrets.ARGOCD_SERVER }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
 
+
       - name: Sync ArgoCD application
         run: |
           argocd app sync new-hello-gitops
