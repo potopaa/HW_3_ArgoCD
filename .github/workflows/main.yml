@@ -50,32 +50,23 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Determine next version
-        id: determine-version
+      - name: Build and push new Docker image
+        env:
+          NEW_IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops
         run: |
-          current_version=$(kubectl get svc hello-gitops -n hello-gitops-argocd -o jsonpath='{.spec.selector.version}' 2>/dev/null || echo "none")
-          if [[ "$current_version" == "blue" ]]; then
-            echo "next_version=green" >> $GITHUB_ENV
-          else
-            echo "next_version=blue" >> $GITHUB_ENV
-          fi
-          echo "Next version: ${{ env.next_version }}"
+          docker build -t $NEW_IMAGE_NAME:latest ./app
+          docker push $NEW_IMAGE_NAME:latest
 
-      - name: Build and push Docker image
+      - name: Update kustomization.yaml with new image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }} ./app
-          docker push ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}
-
-      - name: Update kustomization.yaml
-        run: |
-          sed -i "s|newName:.*|newName: ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}|" app/k8s/kustomization.yaml
+          sed -i "s|newName:.*|newName: ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops:latest|" app/k8s/kustomization.yaml
 
       - name: Commit and push deployment changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add app/k8s/kustomization.yaml
-          git commit -m "Update deployment to use image ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}"
+          git commit -m "Update deployment to use new image ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops:latest"
           git push
 
   deploy-to-aws-and-argocd:
@@ -98,6 +89,10 @@ jobs:
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
 
+      - name: Create new namespace
+        run: |
+          kubectl create namespace new-hello-gitops || echo "Namespace already exists"
+
       - name: Install kustomize
         run: |
           curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.7/kustomize_v4.5.7_linux_amd64.tar.gz | tar xz
@@ -106,7 +101,7 @@ jobs:
       - name: Deploy to AWS using kustomize
         run: |
           cd app/k8s
-          kustomize build . | kubectl apply -n hello-gitops-argocd -f -
+          kustomize build . | kubectl apply -n new-hello-gitops -f -
 
       - name: Install ArgoCD CLI
         run: |
@@ -120,5 +115,5 @@ jobs:
 
       - name: Sync ArgoCD application
         run: |
-          argocd app sync hello-gitops
-          argocd app wait hello-gitops --health
+          argocd app sync new-hello-gitops
+          argocd app wait new-hello-gitops --health
