@@ -49,6 +49,9 @@ jobs:
         with:
           version: 'v1.24.0'
 
+      - name: List repository files for debugging
+        run: ls -R
+
       - name: Determine next version
         id: determine-version
         run: |
@@ -70,9 +73,14 @@ jobs:
           curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.7/kustomize_v4.5.7_linux_amd64.tar.gz | tar xz
           sudo mv kustomize /usr/local/bin/
 
-      - name: Update kustomization.yaml
+      - name: Update kustomization.yaml with next version
         run: |
-          sed -i "s|newName:.*|newName: ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}|" kustomization.yaml
+          if [ -f kustomization.yaml ]; then
+            sed -i "s|newName:.*|newName: ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}|" kustomization.yaml
+          else
+            echo "Error: kustomization.yaml not found!"
+            exit 1
+          fi
 
       - name: Commit and push deployment changes
         run: |
@@ -99,33 +107,6 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --region us-east-1 --name hello-gitops-new
 
-      - name: Deploy to AWS using kustomize
+      - name: Install kustomize
         run: |
-          kustomize build . | kubectl apply -n hello-gitops-new --validate=false -f -
-
-  deploy-to-argocd:
-    runs-on: ubuntu-latest
-    needs: deploy-to-eks
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install ArgoCD CLI
-        uses: jaxxstorm/action-install-argocd@v1
-        with:
-          version: v2.9.3
-
-      - name: Log in to ArgoCD
-        run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} \
-            --username ${{ secrets.ARGOCD_USERNAME }} \
-            --password ${{ secrets.ARGOCD_PASSWORD }} \
-            --insecure
-
-      - name: Sync ArgoCD application
-        run: |
-          argocd app sync hello-gitops-argocd
-
-      - name: Wait for application to be healthy
-        run: |
-          argocd app wait hello-gitops-argocd --health --timeout 300
+          curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.7/kustomize_v4.5.7_linux_amd64.tar.gz 
