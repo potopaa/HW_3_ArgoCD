@@ -62,12 +62,14 @@ jobs:
           sed -i "s|newName:.*|newName: ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops:latest|" k8s/kustomization.yaml
 
       - name: Commit and push deployment changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add k8s/kustomization.yaml
-          git commit -m "Update deployment to use new image ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops:latest"
-          git push
+          git commit -m "Update deployment to use new image ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops:latest" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
 
   deploy-to-aws-and-argocd:
     runs-on: ubuntu-latest
@@ -100,8 +102,13 @@ jobs:
 
       - name: Deploy to AWS using kustomize
         run: |
-          cd /k8s
-          kustomize build . | kubectl apply -n new-hello-gitops -f -
+          if [ -d "k8s" ]; then
+            cd k8s
+            kustomize build . | kubectl apply -n new-hello-gitops -f -
+          else
+            echo "k8s directory not found"
+            exit 1
+          fi
 
       - name: Install ArgoCD CLI
         run: |
