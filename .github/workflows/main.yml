@@ -47,10 +47,7 @@ jobs:
           current_version=$(kubectl get svc hello-gitops -n hello-gitops-argocd -o jsonpath='{.spec.selector.version}' 2>/dev/null || echo "none")
           if [[ "$current_version" == "blue" ]]; then
             echo "next_version=green" >> $GITHUB_ENV
-          elif [[ "$current_version" == "green" ]]; then
-            echo "next_version=blue" >> $GITHUB_ENV
           else
-            echo "No active version detected. Defaulting to blue."
             echo "next_version=blue" >> $GITHUB_ENV
           fi
           echo "Next version: ${{ env.next_version }}"
@@ -60,15 +57,15 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }} .
           docker push ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}
 
-      - name: Update deployment manifests
+      - name: Update kustomization.yaml
         run: |
-          sed -i "s|image:.*|image: ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}|" k8s/deployment-${{ env.next_version }}.yaml
+          sed -i "s|newName:.*|newName: ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}|" k8s/kustomization.yaml
 
       - name: Commit and push deployment changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git add k8s/deployment-${{ env.next_version }}.yaml
+          git add k8s/deployment-${{ env.next_version }}.yaml k8s/kustomization.yaml
           git commit -m "Update deployment to use image ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}"
           git push
 
@@ -86,16 +83,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region us-east-1 --name hello-gitops-new
-
-      - name: Deploy to AWS using kubectl
+      - name: Install kustomize
         run: |
-          if [[ "${{ env.next_version }}" == "green" ]]; then
-            kubectl apply -f k8s/deployment-green.yaml -n hello-gitops-argocd
-          else
-            kubectl apply -f k8s/deployment-blue.yaml -n hello-gitops-argocd
-          fi
+          curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.5.7/kustomize_v4.5.7_linux_amd64.tar.gz | tar xz
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Deploy to AWS using kustomize
+        run: |
+          kustomize build k8s | kubectl apply -n hello-gitops-argocd -f -
 
   deploy-to-argocd:
     runs-on: ubuntu-latest
@@ -123,5 +118,3 @@ jobs:
       - name: Wait for application to be healthy
         run: |
           argocd app wait hello-gitops-argocd --health --timeout 300
-
-          
