@@ -69,7 +69,7 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add k8s/deployment-${{ env.next_version }}.yaml
-          git commit -m "Update deployment to use image ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}"
+          git diff --cached --quiet || git commit -m "Update deployment to use image ${{ secrets.DOCKER_USERNAME }}/hello-gitops:${{ env.next_version }}"
           git push
 
   deploy-to-aws:
