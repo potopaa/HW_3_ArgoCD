@@ -4,7 +4,7 @@ resources:
 - deployment.yaml
 - service.yaml
 - ingress.yaml
-namespace: mew-hello-gitops
+namespace: new-hello-gitops
 images:
 - name: hello-gitops
   newName: potopaa/new-hello-gitops:latest
