@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: hello-gitops
   name: hello-gitops
+  namespace: new-hello-gitops
 spec:
+  selector:
+    app: hello-gitops
+  type: NodePort
   ports:
     - name: http
       port: 8050
-      targetPort: http
-  selector:
-    app: hello-gitops
-  type: ClusterIP
+      targetPort: 8050
+      nodePort: 30080 
