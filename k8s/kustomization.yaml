@@ -7,5 +7,5 @@ resources:
 namespace: new-hello-gitops
 images:
 - name: hello-gitops
-  newName: potopaa/new-hello-gitops:latest
-  newTag: bd1dae49c2cec90b06bd40e4a34a0c80bac06c50
+  newName: potopaa/new-hello-gitops
+  newTag: latest
