@@ -59,7 +59,7 @@ jobs:
 
       - name: Update kustomization.yaml with new image
         run: |
-          sed -i "s|newName:.*|newName: ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops:latest|" app/k8s/kustomization.yaml
+          sed -i "s|newName:.*|newName: ${{ secrets.DOCKER_USERNAME }}/new-hello-gitops:latest|" k8s/kustomization.yaml
 
       - name: Commit and push deployment changes
         run: |
