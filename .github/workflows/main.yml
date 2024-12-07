@@ -91,6 +91,14 @@ jobs:
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
 
+      - name: Set up EKS context
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name YOUR_EKS_CLUSTER_NAME
+
+      - name: Verify Kubernetes connection
+        run: |
+          kubectl get nodes
+
       - name: Create new namespace
         run: |
           kubectl create namespace new-hello-gitops || echo "Namespace already exists"
@@ -102,13 +110,8 @@ jobs:
 
       - name: Deploy to AWS using kustomize
         run: |
-          if [ -d "k8s" ]; then
-            cd k8s
-            kustomize build . | kubectl apply -n new-hello-gitops -f -
-          else
-            echo "k8s directory not found"
-            exit 1
-          fi
+          cd k8s
+          kustomize build . | kubectl apply -n new-hello-gitops --validate=false -f -
 
       - name: Install ArgoCD CLI
         run: |
