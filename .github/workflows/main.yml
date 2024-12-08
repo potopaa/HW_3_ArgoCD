@@ -130,8 +130,7 @@ jobs:
           sleep 10
           argocd login localhost:8080 --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
 
-
       - name: Sync ArgoCD application
         run: |
-          argocd app sync new-hello-gitops
+          argocd app sync new-hello-gitops --prune
           argocd app wait new-hello-gitops --health
