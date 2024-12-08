@@ -4,8 +4,9 @@ metadata:
   name: hello-gitops
   namespace: new-hello-gitops
 spec:
+  ingressClassName: nginx  
   rules:
-    - host: ''
+    - host: '*'
       http:
         paths:
           - path: /
@@ -15,4 +16,3 @@ spec:
                 name: hello-gitops
                 port:
                   number: 8050
-
