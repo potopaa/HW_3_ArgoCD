@@ -135,3 +135,4 @@ jobs:
         run: |
           argocd app sync new-hello-gitops --prune
           argocd app wait new-hello-gitops --health
+
