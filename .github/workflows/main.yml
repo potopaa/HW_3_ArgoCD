@@ -126,7 +126,9 @@ jobs:
 
       - name: Log in to ArgoCD
         run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
+          kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+          sleep 10
+          argocd login localhost:8080 --username ${{ secrets.ARGOCD_USERNAME }} --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
 
 
       - name: Sync ArgoCD application
