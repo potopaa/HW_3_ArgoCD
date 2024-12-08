@@ -1,16 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: argocd-server
-  namespace: argocd
+  name: new-hello-gitops-service
+  namespace: new-hello-gitops
 spec:
-  type: LoadBalancer  
+  type: LoadBalancer    
   selector:
-    app.kubernetes.io/name: argocd-server
+    app: new-hello-gitops
   ports:
-    - name: http
+    - protocol: TCP
       port: 80
-      targetPort: 8080
-    - name: https
-      port: 443
       targetPort: 8080
